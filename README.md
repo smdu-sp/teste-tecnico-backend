@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://www.prefeitura.sp.gov.br/cidade/secretarias/licenciamento/" target="blank"><img src="https://www.prefeitura.sp.gov.br/cidade/secretarias/upload/chamadas/URBANISMO_E_LICENCIAMENTO_HORIZONTAL_FUNDO_CLARO_1665756993.png" width="200" alt="SMUL Logo" /></a>
+  <a href="https://www.prefeitura.sp.gov.br/cidade/secretarias/licenciamento/" target="blank"><img src="https://capital.sp.gov.br/documents/7550836/7535490/URBANISMO_E_LICENCIAMENTO_HORIZONTAL_FUNDO_CLARO_1665756993.png/140853ef-9e0a-ed3d-8534-94a69c00fef8?version=1.0&t=1717188450780" width="200" alt="SMUL Logo" /></a>
 </p>
 
 <p align="center">Teste técnico - SMUL/ATIC</p>
