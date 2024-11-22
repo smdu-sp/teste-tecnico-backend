@@ -29,7 +29,11 @@ $ npm run dev
 ```
 ## O Teste
 
-A ideia é criar um sistema básico de controle de estoque, que execute algumas funções básicas:
+Após dar um fork no repositório, siga para as instruções abaixo:
+
+## Tarefas
+
+Criar um sistema básico de controle de estoque, que execute algumas funções básicas:
   - /produto (get): 
     retorna uma lista de produtos ativos
 
