@@ -49,10 +49,10 @@ Criar um sistema básico de controle de estoque, que execute algumas funções b
   - /produto/:id (delete):
     desativa um produto, ou seja, atualiza o status do mesmo para false e retorna seus dados atualizados
 
-  - /produto/:id/comprar
+  - /produto/:id/comprar (post):
     realiza uma operação de compra do produto, atualizando o preço e quantidade, retornando os dados da operação, com os dados do produto da operação realizada
 
-  - /produto/:id/vender
+  - /produto/:id/vender (post):
     realiza uma operação de venda do produto, atualizando a quantidade, retornando os dados da operação, com os dados do produto da operação realizada
 
 As demais instruções sobre o teste estão em:
