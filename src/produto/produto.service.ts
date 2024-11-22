@@ -54,6 +54,7 @@ export class ProdutoService {
     //tipo: 1 - compra, 2 - venda
     //calcular o valor total recebido na venda (quantidade * preco)
     //deve também atualizar a quantidade do produto, subtraindo a quantidade vendida
+    //caso a quantidade seja esgotada, ou seja, chegue a 0, você deverá atualizar os precoVenda e precoCompra para 0
     throw new Error('Método não implementado.');
   }
 }

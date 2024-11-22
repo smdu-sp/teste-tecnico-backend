@@ -1,73 +1,56 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
+  <a href="https://www.prefeitura.sp.gov.br/cidade/secretarias/licenciamento/" target="blank"><img src="https://www.prefeitura.sp.gov.br/cidade/secretarias/upload/chamadas/URBANISMO_E_LICENCIAMENTO_HORIZONTAL_FUNDO_CLARO_1665756993.png" width="200" alt="SMUL Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+<p align="center">Teste técnico - SMUL/ATIC</p>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Descrição
 
-## Description
+Repositório de teste técnico.
+Documentação de tecnologia utilizada:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- NESTJS: https://docs.nestjs.com/
+- PRISMAIO: https://www.prisma.io/docs/getting-started
 
-## Installation
+## Instalação
 
 ```bash
 $ npm install
 ```
 
-## Running the app
+## Rodando o aplicativo
 
 ```bash
-# development
+# desenvolvimento
 $ npm run start
 
 # watch mode
 $ npm run dev
-
-# production mode
-$ npm run start:prod
 ```
+## O Teste
 
-## Test
+A ideia é criar um sistema básico de controle de estoque, que execute algumas funções básicas:
+  - /produto (get): 
+    retorna uma lista de produtos ativos
 
-```bash
-# unit tests
-$ npm run test
+  - /produto (post):
+    adiciona um novo produto e retorna o mesmo
 
-# e2e tests
-$ npm run test:e2e
+  - /produto/:id (get):
+    retorna um produto buscando pelo id do mesmo, juntamente com os seus dados de operação, dentro do campo "operacoes"
 
-# test coverage
-$ npm run test:cov
-```
+  - /produto/:id (patch):
+    atualiza um produto buscando pelo id do mesmo, retornando os dados do produto atualizado
 
-## Support
+  - /produto/:id (delete):
+    desativa um produto, ou seja, atualiza o status do mesmo para false e retorna seus dados atualizados
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+  - /produto/:id/comprar
+    realiza uma operação de compra do produto, atualizando o preço e quantidade, retornando os dados da operação, com os dados do produto da operação realizada
 
-## Stay in touch
+  - /produto/:id/vender
+    realiza uma operação de venda do produto, atualizando a quantidade, retornando os dados da operação, com os dados do produto da operação realizada
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+As demais instruções sobre o teste estão em:
 
-## License
-
-Nest is [MIT licensed](LICENSE).
+  /src/produto/produtos.service.ts
