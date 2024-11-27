@@ -57,6 +57,13 @@ export class ProdutoService {
     id: number,
     updateProdutoDto: UpdateProdutoDto,
   ): Promise<Produto> {
+    const produto = await this.prisma.produto.findUnique({
+      where: { id },
+    });
+    if (!produto || !produto.status) {
+      throw new BadRequestException('Produto indisponível ou não cadastrado');
+    }
+    
     try {
       const updatedProduto = await this.prisma.produto.update({
         where: { id },
@@ -95,9 +102,11 @@ export class ProdutoService {
       throw new BadRequestException('Produto indisponível ou não cadastrado');
     }
 
-    if (compraProdutoDto.data && compraProdutoDto.data < new Date()) {
+    const dataCompra = new Date(compraProdutoDto.data)
+
+    if (isNaN(dataCompra.getTime()) || dataCompra < new Date()) {
       throw new BadRequestException(
-        'A data da compra não pode ser no passado.',
+        'A data da compra não pode ser no passado ou é inválida.',
       );
     }
 
@@ -132,7 +141,7 @@ export class ProdutoService {
 
       const novaOperacao = await this.prisma.operacao.create({
         data: {
-          data: compraProdutoDto.data,
+          data: dataCompra,
           quantidade: compraProdutoDto.quantidade,
           preco: compraProdutoDto.preco,
           total: parseFloat(totalComPrecoFormatado),
@@ -159,6 +168,14 @@ export class ProdutoService {
       throw new BadRequestException('Produto indisponível ou não cadastrado');
     }
 
+    const dataVenda = new Date(vendaProduto.data)
+
+    if (isNaN(dataVenda.getTime()) || dataVenda < new Date()) {
+      throw new BadRequestException(
+        'A data de venda não pode ser no passado ou é inválida.',
+      );
+    }
+
     if (produto.quantidade < vendaProduto.quantidade) {
       throw new BadRequestException(
         `Quantidade insuficiente de produtos, há apenas ${produto.quantidade} unidades deste produto em estoque`,
@@ -180,7 +197,7 @@ export class ProdutoService {
       const totalComPrecoFormatado = inteiroParaPreco(total);
       const novaVenda = await this.prisma.operacao.create({
         data: {
-          data: vendaProduto.data,
+          data: dataVenda,
           quantidade: vendaProduto.quantidade,
           preco: produto.precoVenda,
           total: parseFloat(totalComPrecoFormatado),
