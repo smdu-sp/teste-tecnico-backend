@@ -12,6 +12,7 @@ export class ProdutoService {
 
   async buscarTodos(): Promise<Produto[]> {
     //método que retorna todos os produtos com status ativo (true)
+
     const produtos = await this.prisma.produto.findMany({ where: { status: true } });
     if (!produtos) throw new InternalServerErrorException('Não foi possível buscar os produtos.');
     return produtos;
@@ -19,6 +20,7 @@ export class ProdutoService {
 
   async criar(createProdutoDto: CreateProdutoDto): Promise<Produto> {
     //desenvolver método que cria um novo produto, retornando o produto criado
+
     const { nome, descricao } = createProdutoDto;
 
 
@@ -67,6 +69,7 @@ export class ProdutoService {
 
   async atualizar(id: number, updateProdutoDto: UpdateProdutoDto): Promise<Produto> {
     //desenvolver método para atualizar os dados do produto do id informado, retornando o produto atualizado
+
     await this.buscarPorId(id);
 
     const produtoAtualizado = await this.prisma.produto.update({
@@ -89,7 +92,6 @@ export class ProdutoService {
   }
 
   async comprarProdutos(id: number, compraProdutoDto: CompraProdutoDto): Promise<Operacao> {
-    const tipo = 1;
     //desenvolver método que executa a operação de compra, retornando a operação com os respectivos dados do produto
     //tipo: 1 - compra, 2 - venda
     //o preço de venda do produto deve ser calculado a partir do preço inserido na operacao, com uma margem de 50% de lucro
@@ -97,45 +99,56 @@ export class ProdutoService {
     //calcular o valor total gasto na compra (quantidade * preco)
     //deve também atualizar a quantidade do produto, somando a quantidade comprada
 
+    const tipo = 1;
+
     const { quantidade, preco } = compraProdutoDto;
 
+    if (!Number.isInteger(quantidade) || quantidade <= 0) {
+      throw new BadRequestException('A quantidade deve ser um número inteiro maior que zero.');
+    }
 
-    if (quantidade <= 0 || preco <= 0) {
-      throw new BadRequestException('Quantidade e preço devem ser maiores que zero.');
+    if (preco <= 0) {
+      throw new BadRequestException('O preço deve ser maior que zero.');
     }
 
     const produto = await this.prisma.produto.findUnique({ where: { id } });
-    if (!produto) throw new NotFoundException('Produto não encontrado.');
+    if (!produto) {
+      throw new NotFoundException('Produto não encontrado.');
+    }
 
     const precoVendaCalculado = preco * 1.5;
 
     return this.prisma.$transaction(async (prisma) => {
+      try {
+        const produtoAtualizado = await prisma.produto.update({
+          where: { id },
+          data: {
+            quantidade: produto.quantidade + quantidade,
+            precoCompra: preco > produto.precoCompra ? preco : produto.precoCompra,
+            precoVenda: precoVendaCalculado > produto.precoVenda ? precoVendaCalculado : produto.precoVenda,
+          },
+        });
 
-      const produtoAtualizado = await prisma.produto.update({
-        where: { id },
-        data: {
-          quantidade: produto.quantidade + quantidade,
-          precoCompra: preco > produto.precoCompra ? preco : produto.precoCompra,
-          precoVenda: precoVendaCalculado > produto.precoVenda ? precoVendaCalculado : produto.precoVenda,
-        },
-      });
+        const operacao = await prisma.operacao.create({
+          data: {
+            produtoId: id,
+            tipo,
+            quantidade,
+            preco,
+            total: quantidade * preco,
+          },
+        });
 
-      const operacao = await prisma.operacao.create({
-        data: {
-          produtoId: id,
-          tipo,
-          quantidade,
-          preco,
-          total: quantidade * preco,
-        },
-      });
+        return { ...operacao, produto: produtoAtualizado };
+      } catch (error) {
 
-      return { ...operacao, produto: produtoAtualizado };
+        console.error('Erro ao processar a compra:', error.message);
+        throw new InternalServerErrorException('Erro ao processar a operação de compra.');
+      }
     });
   }
 
   async venderProdutos(id: number, vendaProduto: VendaProdutoDto): Promise<Operacao> {
-    const tipo = 2;
     //desenvolver método que executa a operação de venda, retornando a venda com os respectivos dados do produto
     //tipo: 1 - compra, 2 - venda
     //calcular o valor total recebido na venda (quantidade * preco)
@@ -143,24 +156,33 @@ export class ProdutoService {
     //caso a quantidade seja esgotada, ou seja, chegue a 0, você deverá atualizar os precoVenda e precoCompra para 0
     // Validação da quantidade de venda
 
+    const tipo = 2;
+
     const { quantidade } = vendaProduto;
+
     if (quantidade <= 0) {
       throw new BadRequestException('A quantidade vendida deve ser maior que zero.');
     }
-
 
     const produto = await this.prisma.produto.findUnique({ where: { id } });
     if (!produto) {
       throw new NotFoundException('Produto não encontrado.');
     }
+
+    if (!produto.status) {
+      throw new BadRequestException('Este produto está desativado e não pode ser vendido.');
+    }
+
+    if (produto.precoVenda <= 0) {
+      throw new BadRequestException('O produto não tem um preço de venda definido.');
+    }
+
     if (produto.quantidade < quantidade) {
       throw new BadRequestException('Quantidade insuficiente em estoque.');
     }
 
-
     return await this.prisma.$transaction(async (prisma) => {
       const novaQuantidade = produto.quantidade - quantidade;
-
 
       const produtoAtualizado = await prisma.produto.update({
         where: { id },
@@ -171,6 +193,7 @@ export class ProdutoService {
         },
       });
 
+      const totalRecebido = parseFloat((quantidade * produto.precoVenda).toFixed(2));
 
       const operacao = await prisma.operacao.create({
         data: {
@@ -178,12 +201,11 @@ export class ProdutoService {
           tipo,
           quantidade,
           preco: produto.precoVenda,
-          total: quantidade * produto.precoVenda,
+          total: totalRecebido,
         },
       });
 
       return { ...operacao, produto: produtoAtualizado };
     });
   }
-
 }
