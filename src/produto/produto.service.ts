@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -16,6 +18,7 @@ import {
   verificarMargemLucro,
 } from './utils/calculos.utils';
 import { ProdutoUtils } from './utils/produto.utils';
+import { ERROR_MESSAGES } from './constants/error-messages';
 
 @Injectable()
 export class ProdutoService {
@@ -26,8 +29,8 @@ export class ProdutoService {
       where: { status: true },
     });
     if (!produtos)
-      throw new InternalServerErrorException(
-        'Não foi possível buscar os produtos.',
+      throw new HttpException(
+        ERROR_MESSAGES.LIST_NOT_FOUND, HttpStatus.NOT_FOUND
       );
     return produtos;
   }
@@ -39,7 +42,7 @@ export class ProdutoService {
       });
       return novoProduto;
     } catch (error) {
-      throw new Error('Não foi possível criar este produto');
+      throw new HttpException(ERROR_MESSAGES.CANNOT_CREATE, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -50,7 +53,7 @@ export class ProdutoService {
       });
       return produto;
     } catch (error) {
-      throw new Error('Produto não encontrado ou não cadastrado');
+      throw new HttpException(ERROR_MESSAGES.NOT_FOUND, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -68,7 +71,7 @@ export class ProdutoService {
       });
       return updatedProduto;
     } catch (error) {
-      throw new Error('Produto não pode ser atualizado');
+      throw new HttpException(ERROR_MESSAGES.CANNOT_UPDATE, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -83,7 +86,7 @@ export class ProdutoService {
       });
       return updatedProduto;
     } catch (error) {
-      throw new Error('Produto não pode ser atualizado');
+      throw new HttpException(ERROR_MESSAGES.CANNOT_DELETE, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -101,8 +104,8 @@ export class ProdutoService {
     this.produtoUtils.validarData(dataCompra)
 
     if (!verificarMargemLucro(compraProdutoDto.preco, produto.precoVenda)) {
-      throw new BadRequestException(
-        'Valor de compra oferecido está abaixo do mercado, oferte um valor maior e tente novamente',
+      throw new HttpException(
+        ERROR_MESSAGES.LOW_PURCHASE_PRICE, HttpStatus.NOT_ACCEPTABLE
       );
     }
 
@@ -141,7 +144,7 @@ export class ProdutoService {
       });
       return novaOperacao;
     } catch (error) {
-      throw new Error('Não foi possível efetuar a venda');
+      throw new Error(ERROR_MESSAGES.CANNOT_BUY);
     }
   }
 
@@ -159,8 +162,8 @@ export class ProdutoService {
     this.produtoUtils.validarData(dataVenda)
 
     if (produto.quantidade < vendaProduto.quantidade) {
-      throw new BadRequestException(
-        `Quantidade insuficiente de produtos, há apenas ${produto.quantidade} unidades deste produto em estoque`,
+      throw new HttpException(
+        ERROR_MESSAGES.INSUFFICIENT_STOCK(produto.quantidade), HttpStatus.NOT_ACCEPTABLE
       );
     }
 
@@ -200,7 +203,7 @@ export class ProdutoService {
 
       return novaVenda;
     } catch (error) {
-      throw new Error('Método não implementado.');
+      throw new HttpException(ERROR_MESSAGES.CANNOT_SALE, HttpStatus.BAD_REQUEST);
     }
   }
 }
