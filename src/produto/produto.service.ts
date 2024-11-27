@@ -15,10 +15,11 @@ import {
   calcularTotalCompra,
   verificarMargemLucro,
 } from './utils/calculos.utils';
+import { ProdutoUtils } from './utils/produto.utils';
 
 @Injectable()
 export class ProdutoService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private readonly produtoUtils: ProdutoUtils) {}
 
   async buscarTodos(): Promise<Produto[]> {
     const produtos = await this.prisma.produto.findMany({
@@ -57,12 +58,8 @@ export class ProdutoService {
     id: number,
     updateProdutoDto: UpdateProdutoDto,
   ): Promise<Produto> {
-    const produto = await this.prisma.produto.findUnique({
-      where: { id },
-    });
-    if (!produto || !produto.status) {
-      throw new BadRequestException('Produto indisponível ou não cadastrado');
-    }
+   
+    await this.produtoUtils.validarProduto(id)
     
     try {
       const updatedProduto = await this.prisma.produto.update({
@@ -76,6 +73,7 @@ export class ProdutoService {
   }
 
   async desativar(id: number): Promise<Produto> {
+    await this.produtoUtils.validarProduto(id)
     try {
       const updatedProduto = await this.prisma.produto.update({
         where: { id },
@@ -95,20 +93,12 @@ export class ProdutoService {
   ): Promise<Operacao> {
     const tipo = 1;
 
-    const produto = await this.prisma.produto.findUnique({
-      where: { id },
-    });
-    if (!produto || !produto.status) {
-      throw new BadRequestException('Produto indisponível ou não cadastrado');
-    }
+    await this.produtoUtils.validarProduto(id)
+    const produto = await this.produtoUtils.validarProduto(id)
 
     const dataCompra = new Date(compraProdutoDto.data)
 
-    if (isNaN(dataCompra.getTime()) || dataCompra < new Date()) {
-      throw new BadRequestException(
-        'A data da compra não pode ser no passado ou é inválida.',
-      );
-    }
+    this.produtoUtils.validarData(dataCompra)
 
     if (!verificarMargemLucro(compraProdutoDto.preco, produto.precoVenda)) {
       throw new BadRequestException(
@@ -161,20 +151,12 @@ export class ProdutoService {
   ): Promise<Operacao> {
     const tipo = 2;
 
-    const produto = await this.prisma.produto.findUnique({
-      where: { id },
-    });
-    if (!produto || !produto.status) {
-      throw new BadRequestException('Produto indisponível ou não cadastrado');
-    }
+    await this.produtoUtils.validarProduto(id)
+    const produto = await this.produtoUtils.validarProduto(id)
 
     const dataVenda = new Date(vendaProduto.data)
 
-    if (isNaN(dataVenda.getTime()) || dataVenda < new Date()) {
-      throw new BadRequestException(
-        'A data de venda não pode ser no passado ou é inválida.',
-      );
-    }
+    this.produtoUtils.validarData(dataVenda)
 
     if (produto.quantidade < vendaProduto.quantidade) {
       throw new BadRequestException(
