@@ -22,7 +22,10 @@ import { ERROR_MESSAGES } from './constants/error-messages';
 
 @Injectable()
 export class ProdutoService {
-  constructor(private prisma: PrismaService, private readonly produtoUtils: ProdutoUtils) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly produtoUtils: ProdutoUtils,
+  ) {}
 
   async buscarTodos(): Promise<Produto[]> {
     const produtos = await this.prisma.produto.findMany({
@@ -30,7 +33,8 @@ export class ProdutoService {
     });
     if (!produtos)
       throw new HttpException(
-        ERROR_MESSAGES.LIST_NOT_FOUND, HttpStatus.NOT_FOUND
+        ERROR_MESSAGES.LIST_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
       );
     return produtos;
   }
@@ -42,7 +46,10 @@ export class ProdutoService {
       });
       return novoProduto;
     } catch (error) {
-      throw new HttpException(ERROR_MESSAGES.CANNOT_CREATE, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        ERROR_MESSAGES.CANNOT_CREATE,
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
@@ -61,9 +68,8 @@ export class ProdutoService {
     id: number,
     updateProdutoDto: UpdateProdutoDto,
   ): Promise<Produto> {
-   
-    await this.produtoUtils.validarProduto(id)
-    
+    await this.produtoUtils.validarProduto(id);
+
     try {
       const updatedProduto = await this.prisma.produto.update({
         where: { id },
@@ -71,12 +77,15 @@ export class ProdutoService {
       });
       return updatedProduto;
     } catch (error) {
-      throw new HttpException(ERROR_MESSAGES.CANNOT_UPDATE, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        ERROR_MESSAGES.CANNOT_UPDATE,
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
   async desativar(id: number): Promise<Produto> {
-    await this.produtoUtils.validarProduto(id)
+    await this.produtoUtils.validarProduto(id);
     try {
       const updatedProduto = await this.prisma.produto.update({
         where: { id },
@@ -86,7 +95,10 @@ export class ProdutoService {
       });
       return updatedProduto;
     } catch (error) {
-      throw new HttpException(ERROR_MESSAGES.CANNOT_DELETE, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        ERROR_MESSAGES.CANNOT_DELETE,
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
@@ -96,16 +108,17 @@ export class ProdutoService {
   ): Promise<Operacao> {
     const tipo = 1;
 
-    await this.produtoUtils.validarProduto(id)
-    const produto = await this.produtoUtils.validarProduto(id)
+    await this.produtoUtils.validarProduto(id);
+    const produto = await this.produtoUtils.validarProduto(id);
 
-    const dataCompra = new Date(compraProdutoDto.data)
+    const dataCompra = new Date(compraProdutoDto.data);
 
-    this.produtoUtils.validarData(dataCompra)
+    this.produtoUtils.validarData(dataCompra);
 
     if (!verificarMargemLucro(compraProdutoDto.preco, produto.precoVenda)) {
       throw new HttpException(
-        ERROR_MESSAGES.LOW_PURCHASE_PRICE, HttpStatus.NOT_ACCEPTABLE
+        ERROR_MESSAGES.LOW_PURCHASE_PRICE,
+        HttpStatus.NOT_ACCEPTABLE,
       );
     }
 
@@ -154,16 +167,17 @@ export class ProdutoService {
   ): Promise<Operacao> {
     const tipo = 2;
 
-    await this.produtoUtils.validarProduto(id)
-    const produto = await this.produtoUtils.validarProduto(id)
+    await this.produtoUtils.validarProduto(id);
+    const produto = await this.produtoUtils.validarProduto(id);
 
-    const dataVenda = new Date(vendaProduto.data)
+    const dataVenda = new Date(vendaProduto.data);
 
-    this.produtoUtils.validarData(dataVenda)
+    this.produtoUtils.validarData(dataVenda);
 
     if (produto.quantidade < vendaProduto.quantidade) {
       throw new HttpException(
-        ERROR_MESSAGES.INSUFFICIENT_STOCK(produto.quantidade), HttpStatus.NOT_ACCEPTABLE
+        ERROR_MESSAGES.INSUFFICIENT_STOCK(produto.quantidade),
+        HttpStatus.NOT_ACCEPTABLE,
       );
     }
 
@@ -190,8 +204,7 @@ export class ProdutoService {
           produto: { connect: { id: produto.id } },
         },
       });
-
-      if (produto.quantidade === 0) {
+      if (produto.quantidade - vendaProduto.quantidade === 0) {
         await this.prisma.produto.update({
           where: { id },
           data: {
@@ -200,10 +213,12 @@ export class ProdutoService {
           },
         });
       }
-
       return novaVenda;
     } catch (error) {
-      throw new HttpException(ERROR_MESSAGES.CANNOT_SALE, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        ERROR_MESSAGES.CANNOT_SALE,
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 }
