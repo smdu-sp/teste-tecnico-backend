@@ -27,7 +27,7 @@ export class ProdutoService {
   }
 
   async criar(createProdutoDto: CreateProdutoDto): Promise<Produto> {
-    //desenvolver método que cria um novo produto, retornando o produto criado
+    //método que cria um novo produto, retornando o produto criado
     try {
       const novoProduto = await this.prisma.produto.create({
         data: {
@@ -42,11 +42,11 @@ export class ProdutoService {
   }
 
   async buscarPorId(id: number): Promise<Produto> {
-    //desenvolver método para retornar o produto do id informado, com os respectivos dados de operações
+    // método para retornar o produto do id informado, com os respectivos dados de operações
     const produto = await this.prisma.produto.findUnique({
       where: { id },
       include: {
-        operacoes: true, // Inclui operações relacionadas ao produto
+        operacoes: true,
       },
     });
     if (!produto) {
@@ -60,7 +60,15 @@ export class ProdutoService {
     updateProdutoDto: UpdateProdutoDto,
   ): Promise<Produto> {
     //desenvolver método para atualizar os dados do produto do id informado, retornando o produto atualizado
-    throw new Error('Método não implementado.');
+    try {
+      const produtoAtualizado = await this.prisma.produto.update({
+        where: { id },
+        data: { ...updateProdutoDto },
+      });
+      return produtoAtualizado;
+    } catch (error) {
+      throw new InternalServerErrorException('Erro ao atualizar produto.');
+    }
   }
 
   async desativar(id: number): Promise<Produto> {
