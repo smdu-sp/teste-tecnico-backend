@@ -73,7 +73,15 @@ export class ProdutoService {
 
   async desativar(id: number): Promise<Produto> {
     //desenvolver método para desativar o produto, mudar o status para false
-    throw new Error('Método não implementado.');
+    try {
+      const produtoDesativado = await this.prisma.produto.update({
+        where: { id },
+        data: { status: false },
+      });
+      return produtoDesativado;
+    } catch (error) {
+      throw new InternalServerErrorException('Erro ao desativar produto.');
+    }
   }
 
   async comprarProdutos(
