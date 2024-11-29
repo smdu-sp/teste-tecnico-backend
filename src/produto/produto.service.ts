@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   BadRequestException,
   Injectable,
@@ -88,14 +89,38 @@ export class ProdutoService {
     id: number,
     compraProdutoDto: CompraProdutoDto,
   ): Promise<Operacao> {
-    const tipo = 1;
+    // const tipo = 1;
     //desenvolver método que executa a operação de compra, retornando a operação com os respectivos dados do produto
     //tipo: 1 - compra, 2 - venda
     //o preço de venda do produto deve ser calculado a partir do preço inserido na operacao, com uma margem de 50% de lucro
     //caso o novo preço seja maior que o preço de venda atual, o preço de venda deve ser atualizado, assim como o preço de compra
     //calcular o valor total gasto na compra (quantidade * preco)
     //deve também atualizar a quantidade do produto, somando a quantidade comprada
-    throw new Error('Método não implementado.');
+    const { quantidade, preco } = compraProdutoDto;
+    return this.prisma.$transaction(async (prisma) => {
+      const produto = await prisma.produto.findUnique({ where: { id } });
+      if (!produto) throw new BadRequestException('Produto não encontrado.');
+      const novoPrecoVenda = Math.max(produto.precoVenda, preco * 1.5);
+      const produtoAtualizado = await prisma.produto.update({
+        where: { id },
+        data: {
+          quantidade: produto.quantidade + quantidade,
+          precoCompra: preco,
+          precoVenda: novoPrecoVenda,
+        },
+      });
+      const operacao = await prisma.operacao.create({
+        data: {
+          tipo: 1, //compra
+          quantidade,
+          preco,
+          total: quantidade * preco,
+          produtoId: produtoAtualizado.id,
+        },
+      });
+      return operacao;
+    });
+    // throw new Error('Método não implementado.');
   }
 
   async venderProdutos(
