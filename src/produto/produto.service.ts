@@ -89,7 +89,6 @@ export class ProdutoService {
     id: number,
     compraProdutoDto: CompraProdutoDto,
   ): Promise<Operacao> {
-    // const tipo = 1;
     //desenvolver método que executa a operação de compra, retornando a operação com os respectivos dados do produto
     //tipo: 1 - compra, 2 - venda
     //o preço de venda do produto deve ser calculado a partir do preço inserido na operacao, com uma margem de 50% de lucro
@@ -120,19 +119,44 @@ export class ProdutoService {
       });
       return operacao;
     });
-    // throw new Error('Método não implementado.');
   }
 
   async venderProdutos(
     id: number,
     vendaProduto: VendaProdutoDto,
   ): Promise<Operacao> {
-    const tipo = 2;
     //desenvolver método que executa a operação de venda, retornando a venda com os respectivos dados do produto
     //tipo: 1 - compra, 2 - venda
     //calcular o valor total recebido na venda (quantidade * preco)
     //deve também atualizar a quantidade do produto, subtraindo a quantidade vendida
     //caso a quantidade seja esgotada, ou seja, chegue a 0, você deverá atualizar os precoVenda e precoCompra para 0
-    throw new Error('Método não implementado.');
+    const { quantidade } = vendaProduto;
+    return this.prisma.$transaction(async (prisma) => {
+      const produto = await prisma.produto.findUnique({ where: { id } });
+      if (!produto) throw new BadRequestException('Produto não encontrado.');
+      if (produto.quantidade < quantidade)
+        throw new BadRequestException('Quantidade insuficiente em estoque.');
+
+      const quantidadeRestante = produto.quantidade - quantidade;
+
+      const produtoAtualizado = await prisma.produto.update({
+        where: { id },
+        data: {
+          quantidade: quantidadeRestante,
+          precoVenda: quantidadeRestante === 0 ? 0 : produto.precoVenda,
+          precoCompra: quantidadeRestante === 0 ? 0 : produto.precoCompra,
+        },
+      });
+      const operacao = await prisma.operacao.create({
+        data: {
+          tipo: 2, //Venda
+          quantidade,
+          preco: produtoAtualizado.precoVenda,
+          total: quantidade * produtoAtualizado.precoVenda,
+          produtoId: produtoAtualizado.id,
+        },
+      });
+      return operacao;
+    });
   }
 }
