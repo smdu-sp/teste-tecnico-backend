@@ -1,4 +1,4 @@
 export class VendaProdutoDto {
-    quantidade: number;
-    data?: Date;
+  quantidade: number;
+  data?: Date;
 }

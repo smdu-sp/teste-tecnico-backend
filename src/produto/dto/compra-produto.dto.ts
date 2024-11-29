@@ -1,5 +1,5 @@
 export class CompraProdutoDto {
-    quantidade: number;
-    preco: number; //preço correspondente a uma unidade
-    data?: Date;
+  quantidade: number;
+  preco: number; //preço correspondente a uma unidade
+  data?: Date;
 }
