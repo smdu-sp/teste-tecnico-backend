@@ -45,3 +45,4 @@ export class ProdutoController {
     return this.produtoService.venderProdutos(+id, vendaProdutoDto);
   }
 }
+
