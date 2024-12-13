@@ -10,40 +10,50 @@ import { Operacao, Produto } from '@prisma/client';
 export class ProdutoService {
   constructor(private prisma: PrismaService) {}
 
+    // Busca todos os produtos ativos
   async buscarTodos(): Promise<Produto[]> {
     const produtos = await this.prisma.produto.findMany({ where: { status: true } });
     if (!produtos) throw new InternalServerErrorException('Não foi possível buscar os produtos.');
     return produtos;
   }
 
+    // Cria um novo produto
   async criar(createProdutoDto: CreateProdutoDto): Promise<Produto> {
     return this.prisma.produto.create({ data: createProdutoDto });
   }
 
+    // Busca um produto pelo ID
   async buscarPorId(id: number): Promise<Produto> {
     const produto = await this.prisma.produto.findUnique({ where: { id } });
     if (!produto) throw new BadRequestException('Produto não encontrado.');
     return produto;
   }
 
+    // Atualiza um produto existente
   async atualizar(id: number, updateProdutoDto: UpdateProdutoDto): Promise<Produto> {
     return this.prisma.produto.update({ where: { id }, data: updateProdutoDto });
   }
 
+  // Desativa um produto(O deixa inativo)
   async desativar(id: number): Promise<Produto> {
     return this.prisma.produto.update({ where: { id }, data: { status: false } });
   }
 
+    // Registra uma compra de produtos e atualiza o estoque e preços
   async comprarProdutos(id: number, compraProdutoDto: CompraProdutoDto): Promise<Operacao> {
+        // Busca o produto a ser comprado
     const produto = await this.prisma.produto.findUnique({ where: { id } });
     if (!produto) throw new BadRequestException('Produto não encontrado.');
 
+        // Calcula o novo preço de compra com margem de 50%
     const novoPreco = compraProdutoDto.preco * 1.5; // margem de 50%
+        // Calcula o valor total da compra
     const totalGasto = compraProdutoDto.quantidade * compraProdutoDto.preco;
 
+        // Registra a operação de compra
     const operacao = await this.prisma.operacao.create({
       data: {
-        tipo: 1,
+        tipo: 1, // 1 indicação de uma compra
         produtoId: id,
         quantidade: compraProdutoDto.quantidade,
         preco: compraProdutoDto.preco,
@@ -51,6 +61,7 @@ export class ProdutoService {
       },
     });
 
+        // Atualiza o produto com os novos valores
     await this.prisma.produto.update({
       where: { id },
       data: {
@@ -60,15 +71,20 @@ export class ProdutoService {
       },
     });
 
+    // Retorna o objeto da operação feita
     return operacao;
   }
 
+    // Registra uma venda de produtos e atualiza o estoque e preços
   async venderProdutos(id: number, vendaProdutoDto: VendaProdutoDto): Promise<Operacao> {
+        // Calcula o valor total da venda
     const produto = await this.prisma.produto.findUnique({ where: { id } });
     if (!produto) throw new BadRequestException('Produto não encontrado.');
 
+        // Calcula o valor total da venda
     const totalRecebido = vendaProdutoDto.quantidade * vendaProdutoDto.preco;
 
+        // Registra a operação de venda
     const operacao = await this.prisma.operacao.create({
       data: {
         tipo: 2,
@@ -79,6 +95,7 @@ export class ProdutoService {
       },
     });
 
+        // Atualiza o produto com os novos valores
     const novaQuantidade = produto.quantidade - vendaProdutoDto.quantidade;
 
     await this.prisma.produto.update({
